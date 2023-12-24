@@ -1,59 +1,122 @@
-//create array of words, randomly selected
-//display one word in word box as blanks
-//create keydown function, changing letters that match
-//create timer (reuse previous examples)
-//store wins and losses in local storage
-//message for win or loss (textcontent)
-//game doesn't start until button is clicked
-//reset score button clears local storage
-
+var startButton = document.querySelector(".start-button");
 var underscoreContainer = document.querySelector(".word-blanks");
+var timerTextEl = document.querySelector(".timer-text");
+var winEl = document.querySelector(".win");
+var loseEl = document.querySelector(".lose");
+var resetButton = document.querySelector(".reset-button");
 
 var wordLibrary = [
-  "JavaScript",
-  "Variable",
-  "Function",
-  "Array",
-  "Christmas",
-  "Present",
-  "Holiday",
-  "Snowman",
-  "Rudolph",
+  "javascript",
+  "variable",
+  "function",
+  "array",
+  "christmas",
+  "present",
+  "holiday",
+  "snowman",
+  "rudolph",
 ];
 
-var word = wordLibrary[Math.floor(Math.random() * wordLibrary.length)];
-console.log("word: " + word);
-
+var word;
 var unsolvedWord;
+var lettersRemaining;
+var timeInterval;
+var wins = localStorage.getItem("wins");
+var losses = localStorage.getItem("losses");
+
+if (!localStorage.getItem("wins")) {
+    wins = 0;
+}
+
+if (!localStorage.getItem("losses")) {
+    losses = 0;
+}
+
+winEl.textContent = wins;
+loseEl.textContent = losses;
+
+startButton.addEventListener("click", function (event) {
+  event.preventDefault();
+  newWord();
+  clearInterval(timeInterval);
+  countdown();
+});
 
 function newWord() {
-// Create an array to store the underscores
-var underscores = [];
+  word = wordLibrary[Math.floor(Math.random() * wordLibrary.length)];
+  lettersRemaining = word.length;
+  console.log("word: " + word);
 
-// Generate the underscores based on the length of the hidden word
-for (var i = 0; i < word.length; i++) {
-  underscores.push("_");
-}
-console.log("underscores: " + underscores);
-// Display the underscores on the screen
-underscoreContainer.textContent = underscores.join(" ");
-unsolvedWord = underscores.join(" ");
-}
+  // Create an array to store the underscores
+  var underscores = [];
 
-newWord();
+  // Generate the underscores based on the length of the hidden word
+  for (var i = 0; i < word.length; i++) {
+    underscores.push("_");
+  }
 
-function keydownAction(event) {
-    // document.querySelector(".word-blanks").textContent = event.key;
-    var lowerCaseWord = word.toLowerCase();
-    //var wordArray;
-
-    for (var i = 0; i < word.length; i++) {
-        var index = lowerCaseWord.indexOf(event.key);
-        wordArray = unsolvedWord.split("");
-        wordArray[index] = event.key;
-        var newWord = wordArray.join("");
-        console.log(newWord);
-    }
+  // Display the underscores on the screen
+  unsolvedWord = underscores.join(" ");
+  underscoreContainer.textContent = unsolvedWord;
 }
 
 document.addEventListener("keydown", keydownAction);
+
+function keydownAction(event) {
+  var indexes = [];
+
+  for (var i = 0; i < word.length; i++) {
+    if (word[i] === event.key) {
+      indexes.push(i);
+    }
+  }
+
+  if (indexes.length !== 0 && unsolvedWord.indexOf(event.key) === -1) {
+    for (var i = 0; i < indexes.length; i++) {
+      wordArray = unsolvedWord.split(" ");
+      wordArray[indexes[i]] = event.key;
+      unsolvedWord = wordArray.join(" ");
+      lettersRemaining--;
+    }
+  }
+
+  underscoreContainer.textContent = unsolvedWord;
+
+  if (lettersRemaining === 0) {
+    clearInterval(timeInterval);
+    timerTextEl.children[0].textContent = "You Win!";
+    timerTextEl.children[1].textContent = "";
+    wins++;
+    localStorage.setItem("wins", wins);
+    winEl.textContent = wins;
+  }
+}
+
+function countdown() {
+  var timeLeft = 10;
+
+  timeInterval = setInterval(function () {
+    timerTextEl.children[0].textContent = timeLeft;
+    timerTextEl.children[1].textContent = "seconds remaining";
+
+    if (timeLeft === 0) {
+      clearInterval(timeInterval);
+      timerTextEl.children[0].textContent = "You Lose!";
+      timerTextEl.children[1].textContent = "";
+      losses++;
+      localStorage.setItem("losses", losses);
+      loseEl.textContent = losses;
+    }
+
+    timeLeft--;
+  }, 1000);
+}
+
+resetButton.addEventListener("click", function(event) {
+    wins = 0;
+    localStorage.setItem("wins", wins);
+    winEl.textContent = wins;
+    losses = 0;
+    localStorage.setItem("losses", losses);
+    loseEl.textContent = losses;
+  });
